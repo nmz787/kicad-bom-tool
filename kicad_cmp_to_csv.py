@@ -3,14 +3,6 @@ import os
 import getopt
 import json
 
-def get_new_octopart_component():
-	component = {"mpn":"", "quantity":0}
-	return component
-
-def read_kicad_cmp(kicadCmpFilePath):
-		with open(kicadCmpFilePath, "r") as kicadCmpFile:
-			lastItem
-
 
 class cmp_to_csv_converter(object):
 	def __init__(self, infilepath, outfilepath):
@@ -46,26 +38,6 @@ class cmp_to_csv_converter(object):
 		print os.path.split(__file__)
 		webbrowser.open_new(os.path.abspath(os.path.join(os.path.split(__file__)[0], "main.html")))
 
-def main(argv):
-	inputfile = ''
-	outputfile = ''
-	thisFileName = os.path.split(__file__)[1]
-	try:
-		opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
-	except getopt.GetoptError:
-		print '%s -i <inputfile> -o <outputfile>' % thisFileName
-		sys.exit(2)
-	for opt, arg in opts:
-		if opt == '-h':
-			print '%s -i <inputfile> -o <outputfile>' % thisFileName
-			sys.exit()
-		elif opt in ("-i", "--ifile"):
-			inputfile = arg
-		elif opt in ("-o", "--ofile"):
-			outputfile = arg
-	print 'Input file is "', inputfile
-	print 'Output file is "', outputfile
-	p=cmp_to_csv_converter(inputfile, outputfile)
 
 def main2(argv):
 	import argparse
