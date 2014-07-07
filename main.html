@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>KiCad BOM via Octopart Tool</title>
+		<style>
+			body{
+				font-family: 'Segoe UI';
+				font-size: 12pt;
+			}
+
+			header h1{
+			    font-size:12pt;
+			    color: #fff;
+			    background-color: #1BA1E2;
+			    padding: 8px;
+			}
+
+			#iFrame{
+				height:100%;
+				width:100%;
+			}
+			#resultPanel {
+				display:none;
+				height:100%;
+			 	width:100%;
+			}
+			#octoDiv{
+				display: none;
+			}
+			#fileSelectorDiv{
+				float: right;
+			}
+			#doneButton{
+				display: none;
+				float: right;
+			}
+			#downloadLink{
+				display: none;
+				float: right;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<script type="text/javascript">
+			var loadedJson={};
+			var index=0;
+			function nextResult(){
+				if (loadedJson.length>index+1) {
+					saveFields();
+					index+=1;
+					loadResult(index);
+				}
+			}
+
+			function prevResult(){
+				if (index>0) {
+					saveFields();
+					index-=1;
+					loadResult(index);
+				}
+			}
+
+			function saveFields(){
+				loadedJson[index]['value'] = $("#valueText").val();
+				loadedJson[index]['footprint'] = $("#footprintText").val();
+				loadedJson[index]['quantity'] = $("#quantityText").val();
+				loadedJson[index]['manufacturerID'] = $('#manufacturerIDText').val()
+				loadedJson[index]['price'] = $('#priceText').val()
+			}
+
+			function loadResult(index){
+				$("#valueText").val(loadedJson[index]['value']);
+				$("#footprintText").val(loadedJson[index]['footprint']);
+				$("#quantityText").val(loadedJson[index]['quantity']);
+				$("#manufacturerIDText").val('');
+				$('#priceText').val('');
+
+				if (loadedJson[index].hasOwnProperty('manufacturerID')){
+					$("#manufacturerIDText").val(loadedJson[index]['manufacturerID']);
+				}
+				if (loadedJson[index].hasOwnProperty('price')){
+					$('#priceText').val(loadedJson[index]['price']);
+				}
+				changeIframe();
+			}
+
+			function changeIframe(){
+				var v = $('#valueText').val();
+				var f = $('#footprintText').val();
+				//$("#iFrame").attr('src', "http://octopart.com/partsearch#!?q=" + v + "%20" + f + "&start=0&limit=10");
+
+				var distributor = "Digi-Key"; //"Mouser"
+				$("#iFrame").attr('src', "http://octopart.com/partsearch#!?q=" + v + "%20" + f + "&start=0&limit=10&filter%5Bfields%5D%5Boffers.seller.name%5D%5B%5D=" + distributor);
+
+			}
+
+			function resizeIframe(){
+				$("#octoDiv").height(($(window).height()-($("header").height()+$("#resultPanel").height())-30));
+			}
+
+			function OnClickDoneButton(){
+				saveFields();
+				var csvData = ConvertToCSV(loadedJson);
+				var blob = new Blob([csvData], {type: "application/json"});
+				var url  = URL.createObjectURL(blob);
+
+				
+				$("#downloadLink").attr("download", "BOM.csv");
+				$("#downloadLink").attr("href", url);
+				$("#downloadLink").text("Download BOM.csv");
+				$("#downloadLink").show("fast");
+			}
+
+			// JSON to CSV Converter
+		    function ConvertToCSV(objArray) {
+		        var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+		        var str = '';
+
+		        for (var i = 0; i < array.length; i++) {
+		            var line = '';
+		            for (var index in array[i]) {
+		                if (line != '') line += ','
+
+		                line += array[i][index];
+		            }
+
+		            str += line + '\r\n';
+		        }
+
+		        return str;
+		    }
+
+			window.onload = function() {
+				//bind the search function to enter keypress in the textbox
+				$('#valueText').keypress(function (event) {
+				    if (event.which == 13) {
+				        changeIframe();
+				    }
+				});
+				$('#footprintText').keypress(function (event) {
+				    if (event.which == 13) {
+				        changeIframe();
+				    }
+				});
+				$('#manufacturerIDText').keypress(function (event) {
+				    if (event.which == 13) {
+				        nextResult();
+				    }
+				});
+
+				$(window).resize(function(){
+					resizeIframe();
+				});
+				$('#iFrame').load(function(){
+			        resizeIframe();
+			    });
+
+
+				//Check File API support
+				if (window.File && window.FileList && window.FileReader) {
+					var filesInput = document.getElementById("files");
+					
+					filesInput.addEventListener("change", function(event) {
+						
+						var files = event.target.files; //FileList object
+						var output = document.getElementById("result");
+
+						for (var i = 0; i < files.length; i++) {
+							var file = files[i];
+							console.log(file);
+							//Only plain text
+							//if (!file.type.match('plain')) continue;
+							
+							var picReader = new FileReader();
+							picReader.onload = function(event) {
+								//picReader.addEventListener("load", function(event) {
+								
+								
+								
+								var div = document.createElement("div");
+								
+								JsonObj = event.target.result;
+								console.log(JsonObj);
+								loadedJson = JSON.parse(JsonObj);
+								$("#resultPanel").show("slow");
+								resizeIframe();
+								$("#octoDiv").show("slow");
+								$("#fileSelectorDiv").hide("slow");
+								loadResult(0);
+
+								$("#doneButton").show("slow");
+								
+								//console.log(loadedJson);
+								//output.insertBefore(div, null);
+								
+							};
+							
+							//Read the text file
+							picReader.readAsText(file);
+						}
+						
+					});
+				}
+				else {
+					console.log("Your browser does not support File API");
+				}
+			}
+
+
+
+		</script>
+		<header>
+			<h1>
+				<span >KiCad BOM via Octopart Tool</span>
+				<span  id="fileSelectorDiv">
+					<label for="files">Select a file: </label>
+					<input id="files" type="file" />
+				</span>
+				<span><button id="doneButton" onclick="OnClickDoneButton()">Done</button><a id="downloadLink"></a></span>
+			</h1>
+		</header>
+			
+		<div id="resultPanel">
+			<table>
+				<tr>
+				    <td>Value</td>
+				    <td>Footprint</td>
+				    <td>Quantity</td>
+				    <td>Manufacturer ID</td>
+				    <td>Price</td>
+				</tr>
+				<tr>
+					<td>
+				    	<input type="text" id="valueText">
+				    </td>
+				    <td>
+				        <input type="text" id="footprintText" >
+				    </td>
+				    <td>
+				        <input type="text" id="quantityText">
+				    </td>
+				    <td>
+				    	<input type="text" id="manufacturerIDText">
+				    </td>
+				    <td>
+				    	<input type="text" id="priceText">
+				    </td>
+				</tr>
+			</table>
+			
+			<a href="javascript:prevResult()" style="display:'none'">Prev</a>
+			<a href="javascript:nextResult()">Next</a><br/>
+			<div style="clear: both;"></div>
+		</div>
+		<div id="octoDiv">
+			<iframe id="iFrame"></iframe>
+		</div>
+	</body>
+</html>
