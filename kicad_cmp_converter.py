@@ -51,8 +51,11 @@ class cmp_to_x_converter(object):
             first_item = self.components[0]
             of.write('quantity, value, footprint, references\n')
             for item in self.components:
-                refs_string = str(item['references'])[1:-1]
-                refs_string = '"{}"'.format(refs_string)
+                if len(item['references'])>1:
+                    refs_string = ', '.join(item['references'])
+                    refs_string = '"{}"'.format(refs_string)
+                else:
+                    refs_string = item['references'][0]
                 out_line = '{}, {}, {}, {}\n'.format(item['quantity'], item['value'], item['footprint'], refs_string)
                 of.write(out_line)
         of.close()
