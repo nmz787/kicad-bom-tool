@@ -49,14 +49,17 @@ class cmp_to_x_converter(object):
             of.write(json.dumps(self.components))
         elif output_type == 'csv':
             first_item = self.components[0]
-            of.write('quantity, value, footprint, references\n')
+            # write the column headers
+            of.write('quantity,value,footprint,references\n')
             for item in self.components:
                 if len(item['references'])>1:
                     refs_string = ','.join(item['references'])
                     refs_string = '"{}"'.format(refs_string)
                 else:
                     refs_string = item['references'][0]
+                # create the text string for the row data
                 out_line = '{},{},{},{}\n'.format(item['quantity'], item['value'], item['footprint'], refs_string)
+                # write the row data
                 of.write(out_line)
         of.close()
 
