@@ -5,8 +5,10 @@ import json
 
 
 class cmp_to_x_converter(object):
-    def __init__(self, infilepath, outfilepath, output_type='json'):
+    def __init__(self, infilepath, output_file_name, output_type='json'):
         infilepath=os.path.abspath(infilepath)
+        infile_dir = os.path.dirname(infilepath)
+        output_file_path = os.path.join(infile_dir, output_file_name)
         components={}
         with open(infilepath,"r") as kicadCmpFile:
             lastline=""
@@ -44,7 +46,7 @@ class cmp_to_x_converter(object):
         #convert tuple to nested dict
         for component in components:
             self.components.append({'value':component[0], 'footprint':component[1], 'quantity': components[component]['quantity'], 'references': components[component]['references']})
-        of = open(outfilepath, 'w')
+        of = open(output_file_path, 'w')
         if output_type == 'json':
             of.write(json.dumps(self.components))
         elif output_type == 'csv':
@@ -73,11 +75,11 @@ def main2(argv):
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("input_file", help="input_file should be a KiCad .cmp file")
-    parser.add_argument("output_file", help="output_file is the path for the output file (CSV or JSON)")
+    parser.add_argument("output_file_name", help="output_file_name is the name for the output file (CSV or JSON), it will be placed in the input_file's directory")
     parser.add_argument("output_type", help="output_type is either CSV or JSON")
     args = parser.parse_args()
     #print args
-    p = cmp_to_x_converter(args.input_file, args.output_file, output_type=args.output_type.lower())
+    p = cmp_to_x_converter(args.input_file, args.output_file_name, output_type=args.output_type.lower())
 
 
 if __name__ == "__main__":
