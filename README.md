@@ -2,3 +2,9 @@ The first tool is a command-line tool that parses a KiCad .cmp file into a .JSON
 
 Requirements:
 Python (sys, os, getopt, json), HTML5 capable browser (and internet connection for connection to octopart)
+
+Usage:
+    
+python kicad_cmp_converter.py [input cmp file] [output file] [output type, CSV or JSON (upper or lowercase is OK)]
+    
+python kicad_cmp_converter.py test.cmp test.csv csv
